@@ -76,6 +76,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             val backgroundImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", backfile)
             val share = Intent(Intent.ACTION_SEND)
             share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            share.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             share.setType("image/*")
             share.putExtra(Intent.EXTRA_STREAM, backgroundImageFile)
             val chooserIntent: Intent = Intent.createChooser(share, "Share to")
