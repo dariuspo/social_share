@@ -50,7 +50,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent.putExtra("interactive_asset_uri", stickerImageFile)
-            if (backgroundImage!=null) {
+            if (backgroundImage != null) {
                 //check if background image is also provided
                 val backfile =  File(activeContext!!.cacheDir,backgroundImage)
                 val backgroundImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", backfile)
@@ -64,6 +64,25 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             activity!!.grantUriPermission("com.instagram.android", stickerImageFile, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             if (activity!!.packageManager.resolveActivity(intent, 0) != null) {
                 activeContext!!.startActivity(intent)
+                result.success("success")
+            } else {
+                result.success("error")
+            }
+        } else if (call.method == "shareInstagramFeed") {
+            // Create the new Intent using the 'Send' action.
+            val backgroundImage: String? = call.argument("imagePath")
+            //check if background image is also provided
+            val backfile = File(activeContext!!.cacheDir, backgroundImage)
+            val backgroundImageFile = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", backfile)
+            val share = Intent(Intent.ACTION_SEND)
+            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            share.setType("image/*")
+            share.putExtra(Intent.EXTRA_STREAM, backgroundImageFile)
+            val chooserIntent: Intent = Intent.createChooser(share, "Share to")
+            // Instantiate activity and verify it will resolve implicit intent
+            activity!!.grantUriPermission("com.instagram.android", backgroundImageFile, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (activity!!.packageManager.resolveActivity(chooserIntent, 0) != null) {
+                activeContext!!.startActivity(chooserIntent)
                 result.success("success")
             } else {
                 result.success("error")
@@ -103,12 +122,12 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             val intent = Intent()
             intent.action = Intent.ACTION_SEND
 
-            if (image!=null) {
+            if (image != null) {
                 //check if  image is also provided
                 val imagefile =  File(activeContext!!.cacheDir,image)
                 val imageFileUri = FileProvider.getUriForFile(activeContext!!, activeContext!!.applicationContext.packageName + ".com.shekarmudaliyar.social_share", imagefile)
                 intent.type = "image/*"
-                intent.putExtra(Intent.EXTRA_STREAM,imageFileUri)
+                intent.putExtra(Intent.EXTRA_STREAM, imageFileUri)
             } else {
                 intent.type = "text/plain";
             }
@@ -149,7 +168,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             val intent = Intent(Intent.ACTION_SENDTO)
             intent.addCategory(Intent.CATEGORY_DEFAULT)
             intent.type = "vnd.android-dir/mms-sms"
-            intent.data = Uri.parse("sms:" )
+            intent.data = Uri.parse("sms:")
             intent.putExtra("sms_body", content)
             try {
                 activity!!.startActivity(intent)
@@ -163,7 +182,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             val url: String? = call.argument("url")
             val trailingText: String? = call.argument("trailingText")
             val urlScheme = "http://www.twitter.com/intent/tweet?text=$text$url$trailingText"
-            Log.d("log",urlScheme)
+            Log.d("log", urlScheme)
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse(urlScheme)
             try {
@@ -172,8 +191,7 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             } catch (ex: ActivityNotFoundException) {
                 result.success("false")
             }
-        }
-        else if (call.method == "shareTelegram") {
+        } else if (call.method == "shareTelegram") {
             //shares content on Telegram
             val content: String? = call.argument("content")
             val telegramIntent = Intent(Intent.ACTION_SEND)
@@ -186,11 +204,10 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             } catch (ex: ActivityNotFoundException) {
                 result.success("false")
             }
-        }
-        else if (call.method == "checkInstalledApps") {
+        } else if (call.method == "checkInstalledApps") {
             //check if the apps exists
             //creating a mutable map of apps
-            var apps:MutableMap<String, Boolean> = mutableMapOf()
+            var apps: MutableMap<String, Boolean> = mutableMapOf()
             //assigning package manager
             val pm: PackageManager =context!!.packageManager
             //get a list of installed apps.
@@ -198,16 +215,16 @@ class SocialSharePlugin:FlutterPlugin, MethodCallHandler, ActivityAware {
             //intent to check sms app exists
             val intent = Intent(Intent.ACTION_SENDTO).addCategory(Intent.CATEGORY_DEFAULT)
             intent.type = "vnd.android-dir/mms-sms"
-            intent.data = Uri.parse("sms:" )
-            val resolvedActivities: List<ResolveInfo>  = pm.queryIntentActivities(intent, 0)
+            intent.data = Uri.parse("sms:")
+            val resolvedActivities: List<ResolveInfo> = pm.queryIntentActivities(intent, 0)
             //if sms app exists
             apps["sms"] = resolvedActivities.isNotEmpty()
             //if other app exists
-            apps["instagram"] = packages.any  { it.packageName.toString().contentEquals("com.instagram.android") }
-            apps["facebook"] = packages.any  { it.packageName.toString().contentEquals("com.facebook.katana") }
-            apps["twitter"] = packages.any  { it.packageName.toString().contentEquals("com.twitter.android") }
-            apps["whatsapp"] = packages.any  { it.packageName.toString().contentEquals("com.whatsapp") }
-            apps["telegram"] = packages.any  { it.packageName.toString().contentEquals("org.telegram.messenger") }
+            apps["instagram"] = packages.any { it.packageName.toString().contentEquals("com.instagram.android") }
+            apps["facebook"] = packages.any { it.packageName.toString().contentEquals("com.facebook.katana") }
+            apps["twitter"] = packages.any { it.packageName.toString().contentEquals("com.twitter.android") }
+            apps["whatsapp"] = packages.any { it.packageName.toString().contentEquals("com.whatsapp") }
+            apps["telegram"] = packages.any { it.packageName.toString().contentEquals("org.telegram.messenger") }
 
             result.success(apps)
         } else {
